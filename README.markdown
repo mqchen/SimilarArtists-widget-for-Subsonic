@@ -23,7 +23,7 @@ would be nice if you could set up your own.
 
 ## Known issues
 
-- It only works with the default theme as the injection is done client-side.
+- It only works with the themes shipped with Subsonic.
 
 ## License: MIT
 
