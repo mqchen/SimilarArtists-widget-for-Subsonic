@@ -20,6 +20,14 @@ jQuery(document).ready(function($) {
 		'href' : '/script/similar_artists/similar_artists.css'
 	}).appendTo('head');
 	
+	var escapeHTML = function(str) {
+		var div = $('<div style="display:none" />');
+		div.text(str);
+		var html = div.html();
+		div.remove();
+		return html;
+	};
+	
 	
 	/**
 	 * Monitor for artist changes
@@ -78,8 +86,8 @@ jQuery(document).ready(function($) {
 					this.error(jqXHR, data.error);
 				}
 				else {
-					if(debug) { console.debug(data.data.similar); }
-					injectSimilarArtists(data.data.name, data.data.similar);
+					if(debug) { console.debug(data.data); }
+					injectSimilarArtists(data.data, data.data.similar);
 				}
 			}
 		});
@@ -111,12 +119,13 @@ jQuery(document).ready(function($) {
 	var injectSimilarArtists = function(artist, artists) {
 		
 		// inject
+		var desc = ((artist.type !== 'Unknown') ? '('+artist.type+') ' : '') + artist.disambiguation;
 		$('#similarArtists').append(
 			//'<div id="similarArtists" data-artists="'+lastArtists+'">'+
 				'<h2 class="head">Similar Artists for</h2>'+
-				'<a class="name" href="http://musicbrainz.org/search/textsearch.html?query='+encodeURIComponent(artist)+
-				'&type=artist" target="_blank">'+
-				artist+'</a>'
+				'<a class="name" href="http://musicbrainz.org/search/textsearch.html?query='+encodeURIComponent(artist.name)+
+				'&type=artist" target="_blank" title="'+escapeHTML(desc)+'">'+
+				escapeHTML(artist.name)+'</a>'
 				//'<ul style="max-height:200px;overflow:auto;"></ul>'
 			//'</div>'
 		);
