@@ -1,0 +1,23 @@
+@CHARSET "UTF-8";
+
+#similarArtists {
+    overflow: auto;
+}
+    #similarArtists .head {
+    }
+
+    #similarArtists .name {
+        display: block;
+        font-weight: bold;
+    }
+
+    #similarArtists .similar {
+        clear: both;
+        max-height: 200px;
+        overflow: auto;
+        padding-left: 16px;
+    }
+
+        #similarArtists .similar li {
+            margin: 1px 0;
+        }
