@@ -112,6 +112,7 @@ class Music_ArtistInfo {
 	}
 	
 	public static function factory($artistOrMBID, $limit = 30) {
+		if($limit < 0) { $limit = 30; }
 		$a = new self();
 		if(preg_match('/^[a-z0-9]+-[a-z0-9]+-[a-z0-9]+-[a-z0-9]+-[a-z0-9]+$/', $artistOrMBID)) {
 			// Id

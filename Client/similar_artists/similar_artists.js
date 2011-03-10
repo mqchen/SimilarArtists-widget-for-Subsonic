@@ -6,10 +6,13 @@ jQuery(document).ready(function($) {
      * Get similar artists config
      */
     var debug = true && console && console.debug;
-    var retry = 5;
-    var attempts = 0;
-	var lastArtists = null;
 	var url = 'http://moquanc.at.ifi.uio.no/ArtistInfo/jsonp.php';
+    var retry = 5; // secs
+    var limit = 10;
+	
+	
+	var lastArtists = null;
+    var attempts = 0;
 
 	/**
 	 * Add css
@@ -61,7 +64,8 @@ jQuery(document).ready(function($) {
 		$.ajax({
 			'url' : url,
 			'data' : {
-				'name' : artist
+				'name' : artist,
+				'limit' : limit
 			},
 			'dataType' : 'jsonp',
 //			'jsonp' : 'callback',
