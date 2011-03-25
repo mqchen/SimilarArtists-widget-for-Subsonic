@@ -14,7 +14,8 @@ would be nice if you could set up your own.
 1. Open the file: `Client/scripts.js` 
 2. Add everything under `/// Add similar artists` to your 
    `/var/subsonic/jetty/<num>/webapp/script/scripts.js` file
-3. Put the `Client/similar_artists` directory from this package in `/var/subsonic/jetty/<num>/webapp/`
+3. Put the `Client/similar_artists` directory from this package in `/var/subsonic/jetty/<num>/webapp/script/`.
+   (The result should be `/var/subsonic/jetty/<num>/webapp/script/similar_artists/`)
 
 *Optional*: If you'd like to setup your own similar artists server
 
