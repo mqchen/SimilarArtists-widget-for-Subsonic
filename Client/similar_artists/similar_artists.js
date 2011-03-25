@@ -5,12 +5,22 @@ jQuery(document).ready(function($) {
     /**
      * Get similar artists config
      */
-    var debug = true && console && console.debug;
-	var url = 'http://moquanc.at.ifi.uio.no/ArtistInfo/jsonp.php';
-    var retry = 5; // secs
+	// Similar artists server
+    var url = 'http://moquanc.at.ifi.uio.no/ArtistInfo/jsonp.php';
+	
+	// How many seconds between each retry
+    var retry = 5;
+    
+    // Limit number of suggested artists
     var limit = 10;
+    
+    // If >= 2 different artists, collapse the suggested artists boxes
+    // To disable feature, set to a very high value
+    var collapseThreshold = 2;
 	
-	
+    
+    var debug = true && console && console.debug;
+	var playingArtistsCount = 0;
 	var lastArtists = null;
     var attempts = 0;
 
@@ -23,6 +33,10 @@ jQuery(document).ready(function($) {
 		'href' : '/script/similar_artists/similar_artists.css'
 	}).appendTo('head');
 	
+	
+	/**
+	 * Escape HTML function
+	 */
 	var escapeHTML = function(str) {
 		var div = $('<div style="display:none" />');
 		div.text(str);
@@ -42,6 +56,7 @@ jQuery(document).ready(function($) {
 			playingArtists[k++] = $(curArtists[i]).text();
 		}
 		playingArtists = jQuery.unique(playingArtists);
+		playingArtistsCount = playingArtists.length;
 		if(playingArtists.length == 0) return;
 		if(lastArtists !== playingArtists.join(',')) {
 			//console.debug(playingArtists);
@@ -124,20 +139,55 @@ jQuery(document).ready(function($) {
 		
 		// inject
 		var desc = ((artist.type !== 'Unknown') ? '('+artist.type+') ' : '') + artist.disambiguation;
-		$('#similarArtists').append(
-			//'<div id="similarArtists" data-artists="'+lastArtists+'">'+
+		var section = $(
+			'<div class="section">'+
 				'<h2 class="head">Similar Artists for</h2>'+
 				'<a class="name" href="http://musicbrainz.org/search/textsearch.html?query='+encodeURIComponent(artist.name)+
 				'&type=artist" target="_blank" title="'+escapeHTML(desc)+'">'+
-				escapeHTML(artist.name)+'</a>'
+				escapeHTML(artist.name)+'</a>'+
 				//'<ul style="max-height:200px;overflow:auto;"></ul>'
-			//'</div>'
+			'</div>'
 		);
+		$('#similarArtists').append(section);
+		
+		// Open/Close
+		var openCloseTrigger = $('<a href="#" class="openCloseTrigger">-</a>');
+		openCloseTrigger.data('isOpen', true);
+		openCloseTrigger.bind('openList', function(e, animate) {
+			var list = $(this).data('list');
+			if(animate || animate == undefined) {
+				list.slideDown();
+			}
+			else {
+				list.show();
+			}
+			$(this).data('isOpen', true);
+			$(this).removeClass('isClosed');
+		});
+		openCloseTrigger.bind('closeList', function(e, animate) {
+			var list = $(this).data('list');
+			if(animate || animate == undefined) {
+				list.slideUp();
+			}
+			else {
+				list.hide();
+			}
+			$(this).data('isOpen', false);
+			$(this).addClass('isClosed');
+		});
+		openCloseTrigger.click(function(e) {
+			e.preventDefault();
+			if($(this).data('isOpen')) { $(this).trigger('closeList'); }
+			else { $(this).trigger('openList'); }
+		});
+		section.append(openCloseTrigger);
+		
+		// Addding similar artists
 		var ul = $('<ul class="similar"></ul>');
-		$('#similarArtists').append(ul);
+		section.append(ul);
+		openCloseTrigger.data('list', ul);
 		
 		var similarCount = 0;
-
 		for(var i = 0; i < artists.length; i++) {
 			if(jQuery.trim(artists[i]) === '') continue;
 			similarCount++;
@@ -153,6 +203,15 @@ jQuery(document).ready(function($) {
 		if(similarCount === 0) {
 			ul.after('None');
 			ul.remove();
+			openCloseTrigger.remove();
+		}
+		else {
+			if(playingArtistsCount >= collapseThreshold) {
+				openCloseTrigger.trigger('closeList', [ false ]);
+				if(debug) {
+					console.debug('Closing similar artists, too many people listening to different artists now.');
+				}
+			}
 		}
 	};
 });

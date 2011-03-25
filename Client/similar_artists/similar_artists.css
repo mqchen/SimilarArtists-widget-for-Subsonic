@@ -3,21 +3,45 @@
 #similarArtists {
     overflow: auto;
 }
-    #similarArtists .head {
+    #similarArtists .section {
+        position: relative;
     }
-
-    #similarArtists .name {
-        display: block;
-        font-weight: bold;
-    }
-
-    #similarArtists .similar {
-        clear: both;
-        max-height: 200px;
-        overflow: auto;
-        padding-left: 16px;
-    }
-
-        #similarArtists .similar li {
-            margin: 1px 0;
+        #similarArtists .head {
         }
+    
+        #similarArtists .openCloseTrigger {
+            display: block;
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 18px;
+            height: 18px;
+            /*text-align: center;
+            line-height: 10px; 
+            font-weight: bold;
+            text-decoration: none;*/
+            text-indent: -999px;
+            overflow: hidden;
+            background-image: url('/icons/sonic/up.png');
+        }
+            #similarArtists .openCloseTrigger.isClosed {
+                background-image: url('/icons/sonic/down.png');
+            }
+            #similarArtists .openCloseTrigger:hover {
+            }
+    
+        #similarArtists .name {
+            display: block;
+            font-weight: bold;
+        }
+    
+        #similarArtists .similar {
+            clear: both;
+            max-height: 200px;
+            overflow: auto;
+            padding-left: 16px;
+        }
+    
+            #similarArtists .similar li {
+                margin: 1px 0;
+            }
