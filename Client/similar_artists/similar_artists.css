@@ -16,18 +16,29 @@
             right: 0;
             width: 18px;
             height: 18px;
-            /*text-align: center;
-            line-height: 10px; 
+            text-align: center;
+            line-height: 18px; 
             font-weight: bold;
-            text-decoration: none;*/
-            text-indent: -999px;
+            text-decoration: none;
+            /*text-indent: -999px;
             overflow: hidden;
-            background-image: url('/icons/sonic/up.png');
+            background-image: url('/icons/sonic/up.png');*/
         }
-            #similarArtists .openCloseTrigger.isClosed {
-                background-image: url('/icons/sonic/down.png');
+            #similarArtists .openCloseTrigger .isClosedLabel {
+                display: none;
             }
-            #similarArtists .openCloseTrigger:hover {
+            #similarArtists .openCloseTrigger.isClosed .isOpenLabel {
+                display: none;
+            }
+            #similarArtists .openCloseTrigger.isClosed .isClosedLabel {
+                display: inline;
+            }
+            #similarArtists .openCloseTrigger.isClosed {
+                /*background-image: url('/icons/sonic/down.png');*/
+            }
+            #similarArtists .openCloseTrigger:hover,
+            #similarArtists .openCloseTrigger:hover * {
+                text-decoration: none;
             }
     
         #similarArtists .name {
@@ -43,5 +54,5 @@
         }
     
             #similarArtists .similar li {
-                margin: 1px 0;
+                padding: 1px 0;
             }

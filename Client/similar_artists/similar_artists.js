@@ -151,7 +151,11 @@ jQuery(document).ready(function($) {
 		$('#similarArtists').append(section);
 		
 		// Open/Close
-		var openCloseTrigger = $('<a href="#" class="openCloseTrigger">-</a>');
+		var openCloseTrigger = $(
+				'<a href="#" class="openCloseTrigger">'+
+					'<span class="isOpenLabel">&uarr;</span>'+
+					'<span class="isClosedLabel">&darr;</span>'+
+				'</a>');
 		openCloseTrigger.data('isOpen', true);
 		openCloseTrigger.bind('openList', function(e, animate) {
 			var list = $(this).data('list');
