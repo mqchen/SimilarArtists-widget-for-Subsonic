@@ -22,7 +22,7 @@ would be nice if you could set up your own.
 1. Upload `Server` from this package to any webserver running PHP5.
 2. Open `similar_artists/similar_artists.js` and change the `url` var to point to your server.
 
-## Known issues
+## Known limitations
 
 - It only works with the themes shipped with Subsonic.
 
