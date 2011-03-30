@@ -25,6 +25,9 @@ class Music_ArtistInfo {
 	public $disambiguation = '';
 	public $similar = array();
 	
+	/// Config
+	protected $adapter = 'curl';
+	
 	protected function __construct() {
 	}
 	
@@ -76,34 +79,69 @@ class Music_ArtistInfo {
 		}
 	}
 	
+	protected function getHTTPRequester() {
+		$r = new HTTP_Request2();
+		$r->setAdapter($this->adapter);
+		return $r;
+	}
+	
 	protected function getArtistInfoFromName($name) {
-		$req = new HTTP_Request2('http://musicbrainz.org/ws/1/artist/?type=xml&name='.urlencode($name), HTTP_Request2::METHOD_GET);
+		$req = $this->getHTTPRequester();
+		$req->setUrl('http://musicbrainz.org/ws/1/artist/?type=xml&name='.urlencode($name));
+		$req->setMethod(HTTP_Request2::METHOD_GET);
 		$req->setConfig(array(
 			'follow_redirects' => true
 		));
 		
-		$xml = simplexml_load_string($req->send()->getBody());
+		try {
+			$xml = simplexml_load_string($req->send()->getBody());
+		}
+		catch(Exception $e) {
+			throw new Exception('Fetching data from MusicBrainz failed: ' . $e->getMessage());
+		}
+		
+		if($xml === false) {
+			throw new Exception('Could not get info from Musicbrainz using name. Error: ' . implode("\n", libxml_get_errors()));
+		}
 		$this->getInfoFromXML($xml);
 	}
 	
 	protected function getArtistInfoFromMusicBrainzId($id) {
-		$req = new HTTP_Request2('http://musicbrainz.org/ws/1/artist/'.$id.'?type=xml', HTTP_Request2::METHOD_GET);
+		$req = $this->getHTTPRequester();
+		$req->setUrl('http://musicbrainz.org/ws/1/artist/'.$id.'?type=xml');
+		$req->setMethod(HTTP_Request2::METHOD_GET);
 		$req->setConfig(array(
 			'follow_redirects' => true
 		));
 		
-		$xml = simplexml_load_string($req->send()->getBody());
+		try {
+			$xml = simplexml_load_string($req->send()->getBody());
+		}
+		catch(Exception $e) {
+			throw new Exception('Fetching data from MusicBrainz using ID failed: ' . $e->getMessage());
+		}
+		
+		if($xml === false) {
+			throw new Exception('Could not get info from Musicbrainz. Error: ' . implode("\n", libxml_get_errors()));
+		}
 		$this->getInfoFromXML($xml);
 	}
 	
 	protected function getSimilarArtists($limit) {
 		// Last.fm
-		$req = new HTTP_Request2('http://ws.audioscrobbler.com/2.0/artist/'.urlencode($this->name).'/similar.txt', HTTP_Request2::METHOD_GET);
+		$req = $this->getHTTPRequester();
+		$req->setUrl('http://ws.audioscrobbler.com/2.0/artist/'.urlencode($this->name).'/similar.txt');
+		$req->setMethod(HTTP_Request2::METHOD_GET);
 		$req->setConfig(array(
 			'follow_redirects' => true
 		));
 		
-		$data = explode("\n", $req->send()->getBody());
+		try {
+			$data = explode("\n", $req->send()->getBody());
+		}
+		catch(Exception $e) {
+			throw new Exception('Requesting info from Last.fm failed: ' . $e->getMessage());
+		}
 		
 		for($i = 0, $count = count($data); $i < $count && $i < $limit; $i++) {
 			$row = str_getcsv($data[$i]);

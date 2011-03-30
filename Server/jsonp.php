@@ -2,6 +2,8 @@
 
 require_once 'Music/ArtistInfo.php';
 
+header("Content-type: application/json");
+
 $json = $_GET['callback'].'(';
 try {
 	
