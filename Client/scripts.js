@@ -23,6 +23,7 @@ function popupSize(mylink, windowname, width, height) {
 (function() {
 	   
 	var loaded = function() {
+		load.injectDependency('https://github.com/cowboy/jquery-postmessage/raw/master/jquery.ba-postmessage.js');
 		load.injectDependency('/script/similar_artists/similar_artists.js');
 	};
 	
@@ -34,7 +35,7 @@ function popupSize(mylink, windowname, width, height) {
     load.injectDependency = function(script) {
         var sa = document.createElement('script');
         sa.type = 'text/javascript';
-        sa.async = true;
+        sa.async = 'async';
         sa.src = script;
         var s = document.getElementsByTagName('script')[0];
         s.parentNode.insertBefore(sa, s);
@@ -44,7 +45,10 @@ function popupSize(mylink, windowname, width, height) {
     	// Continually polls to see if jQuery is loaded.
     	if(typeof(jQuery) === undefined) { // if jQuery isn't loaded yet...
     		if (time_elapsed <= 15000) { // and we havn't given up trying...
-    			setTimeout("load.tryReady(" + (time_elapsed + 200) + ")", 200); // set a timer to check again in 200 ms.
+    			//setTimeout("load.tryReady(" + (time_elapsed + 200) + ")", 200); // set a timer to check again in 200 ms.
+    			setTimeout(function() {
+    				load.tryReady(200);
+    			}, 200);
     		}
     		else {
     			alert("Timed out while loading jQuery.");
