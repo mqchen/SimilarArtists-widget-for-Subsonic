@@ -21,14 +21,22 @@ function popupSize(mylink, windowname, width, height) {
 
 /// Add similar artists
 (function() {
-	   
+	
+	Node.prototype.insertAfter = function(newNode, refNode) {
+		if(refNode.nextSibling) {
+			return this.insertBefore(newNode, refNode.nextSibling);
+		} else {
+			return this.appendChild(newNode);
+		}
+	};
+	
 	var loaded = function() {
-		load.injectDependency('https://github.com/cowboy/jquery-postmessage/raw/master/jquery.ba-postmessage.js');
-		load.injectDependency('/script/similar_artists/similar_artists.js');
+		//load.injectDependency('https://github.com/cowboy/jquery-postmessage/raw/master/jquery.ba-postmessage.js');
+		load.injectDependency('./script/similar_artists/similar_artists.js');
 	};
 	
     var load = function() {
-    	load.injectDependency('/script/similar_artists/jquery-1.5.1.min.js');
+    	load.injectDependency('./script/similar_artists/jquery-1.5.1.min.js');
     	load.tryReady(0);
     };
     
@@ -38,7 +46,7 @@ function popupSize(mylink, windowname, width, height) {
         sa.async = 'async';
         sa.src = script;
         var s = document.getElementsByTagName('script')[0];
-        s.parentNode.insertBefore(sa, s);
+        s.parentNode.insertAfter(sa, s);
     };
     
     load.tryReady = function(time_elapsed) {

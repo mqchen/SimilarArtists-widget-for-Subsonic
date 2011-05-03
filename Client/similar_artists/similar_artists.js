@@ -1,34 +1,10 @@
 try { $.noConflict(); } catch(Exception) {}
 
+
+/**
+ * Similar artists stuff
+ */
 jQuery(document).ready(function($) {
-/*
-	var a = $('<a href="#">Add</a>', {
-		'onClick' : 'top.playlist.onAdd("/media/Music/music/Dire Straits/Sultans of Swing- The Very Best of Dire Straits/15 Your Latest Trick [Live].wma");',
-	});
-	a.appendTo('#nowPlaying');
-	console.debug(a);
-	*/
-    /**
-     * Get similar artists config
-     */
-	// Similar artists server
-    var url = 'http://moquanc.at.ifi.uio.no/ArtistInfo/jsonp.php';
-	
-	// How many seconds between each retry
-    var retry = 5;
-    
-    // Limit number of suggested artists
-    var limit = 10;
-    
-    // If >= 2 different artists, collapse the suggested artists boxes
-    // To disable feature, set to a very high value
-    var collapseThreshold = 2;
-	
-    
-    var debug = true && console && console.debug;
-	var playingArtistsCount = 0;
-	var lastArtists = null;
-    var attempts = 0;
 
 	/**
 	 * Add css
@@ -53,18 +29,39 @@ jQuery(document).ready(function($) {
 	
 	// Dont do anything if nowPlaying doesnt exist
 	//if($('#nowPlaying').length >= 0) {
-	if($('body').hasClass('rightframe')) {
+	var body = $('body');
+	if(body.hasClass('rightframe')) {
 		rightFrame();
 	}
-	else if($('body').hasClass('playlistframe')) {
+	else if(body.hasClass('playlistframe')) {
 		playlistFrame();
 	}
+	else if(body.hasClass('mainframe')) {
+		mainFrame();
+	}
+	
+	
+	/**
+	 * The main frame.
+	 */
+	function mainFrame() {
+		
+	}
+	
 	
 	/**
 	 * Playlist (bottom frame)
 	 */
 	function playlistFrame() {
-		//console.debug('Its playlist');
+//		//console.debug('Its playlist');
+//		var table = $('#playlistBody').parent();
+//		var add = $('<button>Add suggested song</button>');
+//		//add.insertAfter(table);
+//		
+//		add.click(function(e) {
+//			e.preventDefault();
+//			//$.cookie('right', 'hello!');
+//		});
 	}
 	
 	
@@ -72,6 +69,34 @@ jQuery(document).ready(function($) {
 	 * Right sidebar stuff (similar artists widget)
 	 */
 	function rightFrame() {
+		
+		/*monitorCookie('right', function(data) {
+			console.debug(data);
+		});*/
+		
+	    /**
+	     * Get similar artists config
+	     */
+		// Similar artists server
+	    var url = 'http://moquanc.at.ifi.uio.no/ArtistInfo/jsonp.php';
+		
+		// How many seconds between each retry
+	    var retry = 5;
+	    
+	    // Limit number of suggested artists
+	    var limit = 10;
+	    
+	    // If >= 2 different artists, collapse the suggested artists boxes
+	    // To disable feature, set to a very high value
+	    var collapseThreshold = 2;
+		
+	    
+	    var debug = true && console && console.debug;
+		var playingArtistsCount = 0;
+		var lastArtists = null;
+	    var attempts = 0;
+		
+		
 		/**
 		 * Monitor for artist changes
 		 */
@@ -90,6 +115,7 @@ jQuery(document).ready(function($) {
 				resetSimilarArtists();
 				for(var i = 0; i < playingArtists.length; i++) {
 					var curArtist = playingArtists[i];
+					if(curArtist === '') { continue; }
 					if(debug) {
 						console.debug('Currently playing: ' + curArtist);
 					}
