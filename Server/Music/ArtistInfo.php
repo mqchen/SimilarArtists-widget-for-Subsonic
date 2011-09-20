@@ -180,7 +180,9 @@ class Music_ArtistInfo {
 			// Need to find ID
 			$a->getArtistInfoFromName($artistOrMBID);
 			
-			$isNotMultiArtists = strcasecmp($a->name, $artistOrMBID) === 0;
+			$nameSimilarity = 0.0;
+			similar_text(strtolower($a->name), $artistOrMBID, $nameSimilarity);
+			$isNotMultiArtists = $nameSimilarity >= 65;//strcasecmp($a->name, $artistOrMBID) === 0;
 			
 			
 			// Check if multiple artists in one artist name (eg. Frank Sinatra & Elivs Presley)

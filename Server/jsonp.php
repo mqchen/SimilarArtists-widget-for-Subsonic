@@ -12,7 +12,7 @@ try {
 	
 	$json .= json_encode(array('data' => get_object_vars(
 		Music_ArtistInfo::factory(
-			isset($_GET['name']) ? $_GET['name'] : $_GET['id'],
+			isset($_GET['name']) ? rawurldecode($_GET['name']) : $_GET['id'],
 			isset($_GET['limit']) ? $_GET['limit'] : -1))
 		));
 }
