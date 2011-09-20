@@ -6,7 +6,6 @@ header("Content-type: application/json");
 
 $json = $_GET['callback'].'(';
 try {
-	
 	if(!isset($_GET['name']) && !isset($_GET['id'])) {
 		throw new Exception('Must specify either artist name or MusicBrainz id.');
 	}

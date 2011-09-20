@@ -25,8 +25,13 @@ class Music_ArtistInfo {
 	public $disambiguation = '';
 	public $similar = array();
 	
+	
+	protected $similarDetails = array(); // artists are keys and their similarity rating is the value
+	
 	/// Config
 	protected $adapter = 'curl';
+	protected $supportMultipleArtists = true; // support queries like: John Lennon, Paul McCartney and treat
+											  // each artist individually, and merge the results.
 	
 	protected function __construct() {
 	}
@@ -128,9 +133,13 @@ class Music_ArtistInfo {
 	}
 	
 	protected function getSimilarArtists($limit) {
+		$this->loadSimilarArtists($this->name, $limit);
+	}
+	
+	protected function loadSimilarArtists($name, $limit) {
 		// Last.fm
 		$req = $this->getHTTPRequester();
-		$req->setUrl('http://ws.audioscrobbler.com/2.0/artist/'.urlencode($this->name).'/similar.txt');
+		$req->setUrl('http://ws.audioscrobbler.com/2.0/artist/'.urlencode($name).'/similar.txt');
 		$req->setMethod(HTTP_Request2::METHOD_GET);
 		$req->setConfig(array(
 			'follow_redirects' => true
@@ -143,10 +152,16 @@ class Music_ArtistInfo {
 			throw new Exception('Requesting info from Last.fm failed: ' . $e->getMessage());
 		}
 		
+		$similar = array();
 		for($i = 0, $count = count($data); $i < $count && $i < $limit; $i++) {
 			$row = str_getcsv($data[$i]);
-			$this->similar[] = htmlspecialchars_decode($row[2]);
+			$similar[htmlspecialchars_decode($row[2])] = floatval($row[0]);
 		}
+		
+		$this->similarDetails = $similar;
+		$this->similar = array_keys($similar);
+		
+		return $similar;
 	}
 	
 	public static function factory($artistOrMBID, $limit = 30) {
@@ -155,15 +170,56 @@ class Music_ArtistInfo {
 		if(preg_match('/^[a-z0-9]+-[a-z0-9]+-[a-z0-9]+-[a-z0-9]+-[a-z0-9]+$/', $artistOrMBID)) {
 			// Id
 			$a->getArtistInfoFromMusicBrainzId($artistOrMBID);
+			
+			// similar artists
+			$a->getSimilarArtists($limit);
 		}
 		else {
-			// Name
-			// Need to find ID
-			$a->getArtistInfoFromName($artistOrMBID);
-		}
+			// Check if multiple artists in one artist name (eg. Frank Sinatra & Elivs Presley)
+			$names = preg_split("/[\s]*[\/\,\&]+[\s]*/", $artistOrMBID);
+			if(count($names) >= 2 && !(count($names) == 2 && strcasecmp("the", $names[count($names) - 1]) === 0)) {
+				
+				$artists = array();
+				
+				// Get info for each one
+				foreach($names as $name) {
+					$tmpArtist = self::factory($name, $limit);
+					$artists[$tmpArtist->name] = $tmpArtist;
+				}
+				
+				// Merge them together in one "super" artist
+				$superArtist = new self();
+				$superArtist->name = implode(", ", array_keys($artists));
+				$superArtist->type = "Various Artists";
+				
+				
+				$similar = array();
+				
+				foreach($artists as $artist) {
+					foreach($artist->similarDetails as $similarArtist => $similarityRating) {
+						if(!array_key_exists($similarArtist, $similar)) {
+							$similar[$similarArtist] = 0;
+						}
+						$similar[$similarArtist] += $similarityRating;
+					}
+				}
+				
+				arsort($similar);
+				
+				$superArtist->similar = array_splice(array_keys($similar), 0, $limit);
+				
+				return $superArtist;
+			}
+			else {
+				// Name
+				// Need to find ID
+				$a->getArtistInfoFromName($artistOrMBID);
+				
 		
-		// similar artists
-		$a->getSimilarArtists($limit);
+				// similar artists
+				$a->getSimilarArtists($limit);
+			}
+		}
 		
 		return $a;
 	}
