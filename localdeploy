@@ -1,0 +1,15 @@
+#!/bin/bash
+
+scp -r Client/scripts.js m@mdesktop.local:/var/subsonic/jetty/*/webapp/script/scripts.js
+scp -r Client/similar_artists/* m@mdesktop.local:/var/subsonic/jetty/*/webapp/script/similar_artists/
+
+
+echo -n "Remote sudo password: "
+
+stty -echo
+read password
+stty echo
+
+echo ""         # force a carriage return to be output
+
+ssh m@mdesktop.local "echo $password | sudo -S rm -rfv /var/subsonic/jetty/*/jsp/"

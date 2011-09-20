@@ -139,7 +139,7 @@ class Music_ArtistInfo {
 	protected function loadSimilarArtists($name, $limit) {
 		// Last.fm
 		$req = $this->getHTTPRequester();
-		$req->setUrl('http://ws.audioscrobbler.com/2.0/artist/'.urlencode($name).'/similar.txt');
+		$req->setUrl('http://ws.audioscrobbler.com/2.0/artist/'.rawurlencode(rawurlencode($name)).'/similar.txt');
 		$req->setMethod(HTTP_Request2::METHOD_GET);
 		$req->setConfig(array(
 			'follow_redirects' => true
@@ -175,9 +175,18 @@ class Music_ArtistInfo {
 			$a->getSimilarArtists($limit);
 		}
 		else {
+			
+			// Name
+			// Need to find ID
+			$a->getArtistInfoFromName($artistOrMBID);
+			
+			$isNotMultiArtists = strcasecmp($a->name, $artistOrMBID) === 0;
+			
+			
 			// Check if multiple artists in one artist name (eg. Frank Sinatra & Elivs Presley)
 			$names = preg_split("/[\s]*[\/\,\&]+[\s]*/", $artistOrMBID);
-			if(count($names) >= 2 && !(count($names) == 2 && strcasecmp("the", $names[count($names) - 1]) === 0)) {
+			if(!$isNotMultiArtists && count($names) >= 2
+			&& !(count($names) == 2 && strcasecmp("the", $names[count($names) - 1]) === 0)) {
 				
 				$artists = array();
 				
@@ -211,11 +220,6 @@ class Music_ArtistInfo {
 				return $superArtist;
 			}
 			else {
-				// Name
-				// Need to find ID
-				$a->getArtistInfoFromName($artistOrMBID);
-				
-		
 				// similar artists
 				$a->getSimilarArtists($limit);
 			}
