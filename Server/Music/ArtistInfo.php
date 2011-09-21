@@ -27,6 +27,7 @@ class Music_ArtistInfo {
 	
 	
 	protected $similarDetails = array(); // artists are keys and their similarity rating is the value
+	protected $queryName = null; // Given name
 	
 	/// Config
 	protected $adapter = 'curl';
@@ -36,17 +37,35 @@ class Music_ArtistInfo {
 	protected function __construct() {
 	}
 	
+	protected function isCorrectArtist(SimpleXMLElement $xml) {
+		$attr = $xml->attributes();
+		if($attr === 'Unknown') return false; // Unknown type, ignore
+		
+		// name similarity
+		if(strlen($this->queryName) > 0) {
+			$hitNameSimilarity = 0.0;
+			similar_text(strtolower($this->queryName), strtolower($artistHit->name), $hitNameSimilarity);
+			if($hitNameSimilarity < 20) {
+				return false; // name is too different from query name
+			}
+		}
+		
+		return true;
+	}
+	
 	protected function getInfoFromXML(SimpleXMLElement $xml) {
 		$xml->registerXPathNamespace('mb', 'http://musicbrainz.org/ns/mmd-2.0#');
 		$xml->registerXPathNamespace('ext', 'http://musicbrainz.org/ns/ext-2.0#');
 		
 		// artist
 		$xpaths = array(
-			"/mb:metadata/mb:artist-list/mb:artist[@type != 'Unknown']",
+			//"/mb:metadata/mb:artist-list/mb:artist[@type != 'Unknown']",
 			'/mb:metadata/mb:artist[1]',
 			'/mb:metadata/mb:artist-list/mb:artist[1]',
 		);
 		
+		
+		// Run xpaths to extract artist elements
 		foreach($xpaths as $num => $xpath) {
 			$artist = $xml->xpath($xpath);
 			if($artist === false || count($artist) == 0) {
@@ -59,7 +78,25 @@ class Music_ArtistInfo {
 			}
 		}
 		
-		$artist = $artist[0];
+		// Choose an artist from the results
+		if(count($artist) == 1) {
+			$artist = $artist[0];
+		}
+		else {
+			// Iterate from beginning, ignoring Unknown types and hits with names that are <10% similar
+			$selectedAHit = false;
+			foreach($artist as $artistHit) {
+				if($this->isCorrectArtist($artistHit)) {
+					$selectedAHit = true;
+					$artist = $artist[0];
+					break;
+				}
+			}
+			
+			if(!$selectedAHit) {
+				$artist = $artist[0]; // just take the first one
+			}
+		}
 		
 		// id
 		$attr = $artist->attributes();
@@ -91,6 +128,8 @@ class Music_ArtistInfo {
 	}
 	
 	protected function getArtistInfoFromName($name) {
+		$this->queryName = $name;
+		
 		$req = $this->getHTTPRequester();
 		$req->setUrl('http://musicbrainz.org/ws/2/artist/?type=xml&query='.urlencode($name));
 		$req->setMethod(HTTP_Request2::METHOD_GET);
@@ -164,7 +203,7 @@ class Music_ArtistInfo {
 		return $similar;
 	}
 	
-	public static function createVariousArtistsInfo(array $names) {
+	public static function createVariousArtistsInfo(array $names, $limit) {
 		$artists = array();
 				
 		// Get info for each one
@@ -214,7 +253,7 @@ class Music_ArtistInfo {
 			$a->getArtistInfoFromName($artistOrMBID);
 			
 			$nameSimilarity = 0.0;
-			similar_text(strtolower($a->name), $artistOrMBID, $nameSimilarity);
+			similar_text(strtolower($a->name), strtolower($artistOrMBID), $nameSimilarity);
 			$isNotMultiArtists = $nameSimilarity >= 65;//strcasecmp($a->name, $artistOrMBID) === 0;
 			
 			
@@ -223,10 +262,10 @@ class Music_ArtistInfo {
 			if(!$isNotMultiArtists && count($names) >= 2
 			&& !(count($names) == 2 && strcasecmp("the", $names[count($names) - 1]) === 0)) {
 				
-				return self::createVariousArtistsInfo($names);
+				return self::createVariousArtistsInfo($names, $limit);
 			}
 			else {
-				// similar artists
+				// similar artists for this artist
 				$a->getSimilarArtists($limit);
 			}
 		}
