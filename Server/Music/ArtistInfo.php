@@ -37,8 +37,8 @@ class Music_ArtistInfo {
 	}
 	
 	protected function getInfoFromXML(SimpleXMLElement $xml) {
-		$xml->registerXPathNamespace('mb', 'http://musicbrainz.org/ns/mmd-1.0#');
-		$xml->registerXPathNamespace('ext', 'http://musicbrainz.org/ns/ext-1.0#');
+		$xml->registerXPathNamespace('mb', 'http://musicbrainz.org/ns/mmd-2.0#');
+		$xml->registerXPathNamespace('ext', 'http://musicbrainz.org/ns/ext-2.0#');
 		
 		// artist
 		$xpaths = array(
@@ -92,7 +92,7 @@ class Music_ArtistInfo {
 	
 	protected function getArtistInfoFromName($name) {
 		$req = $this->getHTTPRequester();
-		$req->setUrl('http://musicbrainz.org/ws/1/artist/?type=xml&name='.urlencode($name));
+		$req->setUrl('http://musicbrainz.org/ws/2/artist/?type=xml&query='.urlencode($name));
 		$req->setMethod(HTTP_Request2::METHOD_GET);
 		$req->setConfig(array(
 			'follow_redirects' => true
@@ -113,7 +113,7 @@ class Music_ArtistInfo {
 	
 	protected function getArtistInfoFromMusicBrainzId($id) {
 		$req = $this->getHTTPRequester();
-		$req->setUrl('http://musicbrainz.org/ws/1/artist/'.$id.'?type=xml');
+		$req->setUrl('http://musicbrainz.org/ws/2/artist/'.$id);
 		$req->setMethod(HTTP_Request2::METHOD_GET);
 		$req->setConfig(array(
 			'follow_redirects' => true
@@ -164,6 +164,39 @@ class Music_ArtistInfo {
 		return $similar;
 	}
 	
+	public static function createVariousArtistsInfo(array $names) {
+		$artists = array();
+				
+		// Get info for each one
+		foreach($names as $name) {
+			$tmpArtist = self::factory($name, $limit);
+			$artists[$tmpArtist->name] = $tmpArtist;
+		}
+		
+		// Merge them together in one "super" artist
+		$superArtist = new self();
+		$superArtist->name = implode(", ", array_keys($artists));
+		$superArtist->type = "Various Artists";
+		
+		
+		$similar = array();
+		
+		foreach($artists as $artist) {
+			foreach($artist->similarDetails as $similarArtist => $similarityRating) {
+				if(!array_key_exists($similarArtist, $similar)) {
+					$similar[$similarArtist] = 0;
+				}
+				$similar[$similarArtist] += $similarityRating;
+			}
+		}
+		
+		arsort($similar);
+		
+		$superArtist->similar = array_splice(array_keys($similar), 0, $limit);
+		
+		return $superArtist;
+	}
+	
 	public static function factory($artistOrMBID, $limit = 30) {
 		if($limit < 0) { $limit = 30; }
 		$a = new self();
@@ -190,36 +223,7 @@ class Music_ArtistInfo {
 			if(!$isNotMultiArtists && count($names) >= 2
 			&& !(count($names) == 2 && strcasecmp("the", $names[count($names) - 1]) === 0)) {
 				
-				$artists = array();
-				
-				// Get info for each one
-				foreach($names as $name) {
-					$tmpArtist = self::factory($name, $limit);
-					$artists[$tmpArtist->name] = $tmpArtist;
-				}
-				
-				// Merge them together in one "super" artist
-				$superArtist = new self();
-				$superArtist->name = implode(", ", array_keys($artists));
-				$superArtist->type = "Various Artists";
-				
-				
-				$similar = array();
-				
-				foreach($artists as $artist) {
-					foreach($artist->similarDetails as $similarArtist => $similarityRating) {
-						if(!array_key_exists($similarArtist, $similar)) {
-							$similar[$similarArtist] = 0;
-						}
-						$similar[$similarArtist] += $similarityRating;
-					}
-				}
-				
-				arsort($similar);
-				
-				$superArtist->similar = array_splice(array_keys($similar), 0, $limit);
-				
-				return $superArtist;
+				return self::createVariousArtistsInfo($names);
 			}
 			else {
 				// similar artists
